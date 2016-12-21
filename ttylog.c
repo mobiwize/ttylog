@@ -199,12 +199,16 @@ main (int argc, char *argv[])
       FD_ZERO (&rfds);
       FD_SET (fd, &rfds);
       retval = select (fd + 1, &rfds, NULL, NULL, NULL);
-      if (retval)
+      if (retval > 0)
         {
-          fgets (line, 1024, logfile);
+          if (!fgets (line, 1024, logfile))
+            {
+              if (ferror (logfile)) { break; }
+            }
           fputs (line, stdout);
           if (flush) { fflush(stdout); }
         }
+      else if (retval < 0) { break; }
     }
 
   fclose (logfile);
